@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen</title>
+    <style>
+        body{
+            margin: 0;
+        }
+        canvas{
+            display: block;
+        }
+        div{
+            padding-top: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .textoInputCentrado{
+            width: 100px;
+            text-align: center;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js" integrity="sha512-3RlxD1bW34eFKPwj9gUXEWtdSMC59QqIqHnD8O/NoTwSJhgxRizdcFVQhUMFyTp5RwLTDL0Lbcqtl8b7bFAzog==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <div>
+        <input type="number" id="partes" min="1" max="8" value="1" class="textoInputCentrado">
+    </div>
+
+    <script>
+        function setup(){
+            createCanvas(windowWidth, windowHeight-350);
+        }
+
+        function draw(){
+            let partes = document.getElementById("partes").value;
+
+            background('width');
+            strokeWeight(2);
+
+            circuloPuntoPendiente(100, width / 4, height / 2, partes);
+            circuloDDA(100, width / 2, height / 2, partes);
+            circuloBresenham(100, 3 * width / 4, height / 2, partes);
+        }
+
+        function circuloPuntoPendiente(radio, xc, yc, partes){
+            let x = 0;
+            let y = radio;
+            let angulo = 360 / partes;
+
+            circulo(radio, xc, yc);
+
+            point(xc, yc);
+
+            if(partes > 1){
+                for(let i = 0; i < partes; i++){
+                    let punto = rotar(x, y, angulo * i);
+
+                    point(xc + punto.x, yc + punto.y);
+
+                    lineaPuntoPendiente(xc, yc, xc + punto.x, yc + punto.y);
+                }
+            }
+        }
+
+        function circuloDDA(radio, xc, yc, partes){
+            let x = 0;
+            let y = radio;
+            let angulo = 360 / partes;
+
+            circulo(radio, xc, yc);
+
+            point(xc, yc);
+
+            if(partes > 1){
+                for(let i = 0; i < partes; i++){
+                    let punto = rotar(x, y, angulo * i);
+
+                    point(xc + punto.x, yc + punto.y);
+
+                    lineaDDA(xc, yc, xc + punto.x, yc + punto.y);
+                }
+            }
+        }
+
+        function circuloBresenham(radio, xc, yc, partes){
+            let x = 0;
+            let y = radio;
+            let angulo = 360 / partes;
+
+            circulo(radio, xc, yc);
+
+            point(xc, yc);
+
+            if(partes > 1){
+                for(let i = 0; i < partes; i++){
+                    let punto = rotar(x, y, angulo * i);
+
+                    point(xc + punto.x, yc + punto.y);
+                    
+                    lineaBresenham(xc, yc, xc + punto.x, yc + punto.y);
+                }
+            }
+        }
+
+        function circulo(r, xc, yc){
+            let x = 0;
+            let y = r;
+            let p = 5 / 4 - r;
+
+            while(x < y){
+                if(p < 0){
+                    x++;
+                    p = p + (2 * x) + 1;
+                }else{
+                    x++;
+                    y--;
+                    p = p + (2 * x) + 1 - ( 2 * y);
+                }
+
+                point(xc + x, yc + y);
+                point(xc + y, yc + x);
+                point(xc - x, yc + y);
+                point(xc - y, yc + x);
+                point(xc + x, yc - y);
+                point(xc + y, yc - x);
+                point(xc - x, yc - y);
+                point(xc - y, yc - x);
+            }
+        }
+
+        function rotar(x, y, angulo){
+            let radian = radians(angulo);
+            let x1 = x * cos(radian) - y * sin(radian);
+            let y1 = x * sin(radian) + y * cos(radian);
+
+            return {
+                x: x1, 
+                y: y1
+            };
+        }
+
+        function lineaPuntoPendiente(x1, y1, x2, y2){
+            if(x1 === x2){
+                if(y1 < y2){
+                    for(let y = y1; y <= y2; y++){
+                        point(x1, y);
+                    }
+                }else if(y1 > y2){
+                    for (let y = y1; y >= y2; y--){
+                        point(x1, y);
+                    }
+                }
+            }else{
+                let m = (y2 - y1) / (x2 - x1);
+                let b = y1 - (m * x1);
+                
+                if(x1 < x2){
+                    for (let x = x1; x <= x2; x++){
+                        let y = m * x + b;
+                        point(x, y);
+                    }
+                }else if(x1 > x2){
+                    for (let x = x1; x >= x2; x--){
+                    let y = m * x + b;
+                        point(x, y);
+                    }
+                }
+            }
+        }
+       
+        function lineaDDA(x1, y1, x2, y2){
+            let dx = x2 - x1;
+            let dy = y2 - y1;
+
+            let pasos = Math.abs(dx) > Math.abs(dy) ? Math.abs(dx) : Math.abs(dy);
+            
+            let xIncremento = dx / pasos;
+            let yIncremento = dy / pasos;
+            
+            let x = x1;
+            let y = y1;
+            
+            for(let i = 0; i < pasos; i++){
+                point(x, y);
+
+                x += xIncremento;
+                y += yIncremento;
+            }
+        }
+
+        function lineaBresenham(x1, y1, x2, y2){
+            let x = x1;
+            let y = y1;
+
+            let dx = abs(x2 - x1);
+            let dy = abs(y2 - y1);
+
+            let signoX = (x2 - x1) < 0 ? -1 : ((x2 - x1) > 0 ? 1 : 0);
+            let signoY = (y2 - y1) < 0 ? -1 : ((y2 - y1) > 0 ? 1 : 0);
+
+            let temporal;
+            let intercambio;
+            let error;
+
+            if(dy > dx){
+                temporal = dx;
+                dx = dy;
+                dy = temporal;
+                intercambio = 1;
+            }else{
+                intercambio = 0;
+            }
+
+            error = 2 * dy - dx;
+
+            for(let i = 1; i <= dx; i++){
+                point(x, y);
+
+                if(error >= 0){
+                    if(intercambio == 1){
+                        x = x + signoX;
+                    }else{
+                        y = y + signoY;
+                    }
+
+                    error = error - 2 * dx;
+                }
+
+                if(intercambio == 1){
+                    y = y + signoY;
+                }else{
+                    x = x + signoX;
+                }
+
+                error = error + 2 * dy;
+            }
+        }
+        
+    </script>
+
+</body>
+</html>
